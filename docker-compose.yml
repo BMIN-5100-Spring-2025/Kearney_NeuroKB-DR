@@ -1,0 +1,14 @@
+services:
+  app:
+    image: template:0.0.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_DIR=/data/db/
+      - OUTPUT_DIR=/data/output/
+      - INPUT_DIR=/data/input/
+    volumes:
+      - ./data/db:/data/db:ro
+      - ./data/input:/data/input:ro
+      - ./data/output:/data/output

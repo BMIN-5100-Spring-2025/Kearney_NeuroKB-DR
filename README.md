@@ -1,30 +1,15 @@
-# BMIN 5100 Template Repository
-Template repository for BMIN 5100 Projects.
+# NeuroKB-DR - Neurodegeneration Knowledge Base Drug Repurposing
 
-Contains a minimal Python project that reads a CSV from an input directory and
-outputs a CSV to an output directory, suitable for an analysis workflow on Pennsieve.
+## Overview
 
-Use this template to create your own GitHub repository by clicking the green
-`Use this template` button towards the top-right of this page.
+This project uses the existing NeuroKB for drug repurposing. A trained linnk prediction model is used to score potential edges between a given disease and all drugs in the knowledge base. The top 250 candidate drugs are saved.
 
-### Setup
-Install the following:
-- `python3` (latest)
-- `pip` (or `pip3`, latest)
+## To Use
 
-Then, run the following
-```
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
-```
+1. Update the disease in /data/input/disease.txt using the disease-id paits in /dataa/db/disease_id.csv.
+2. Download and set up docker
+3. Run the following commands:
+```docker-compose build```
+```docker-compose up```
+4. The candidate drugs will be saved to a file in /data/output/
 
-### Running the application
-```
-python3 main/app.py
-```
-
-### Testing the application
-```
-pytest
-```
