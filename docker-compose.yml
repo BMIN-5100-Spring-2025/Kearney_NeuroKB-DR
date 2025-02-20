@@ -1,6 +1,6 @@
 services:
   app:
-    image: template:0.0.2
+    image: neurokb_dr
     build:
       context: .
       dockerfile: Dockerfile
