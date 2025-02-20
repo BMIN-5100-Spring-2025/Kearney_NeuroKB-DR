@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    stdin_open: true
+    tty: true
     environment:
       - DB_DIR=/data/db/
       - OUTPUT_DIR=/data/output/

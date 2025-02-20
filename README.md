@@ -7,9 +7,17 @@ This project uses the existing NeuroKB for drug repurposing. A trained link pred
 ## To Use
 
 1. Update the disease in ```/data/input/disease.txt``` using the disease-id pairs in ```/data/db/disease_id.csv```.
-2. Download and set up docker
+2. Download and set up docker. Start docker.
 3. Run the following commands:
+
 ```docker-compose build```
+
 ```docker-compose up```
 4. The candidate drugs will be saved to a file in ```/data/output/```
 
+## To use interactively
+```docker-compose build```
+
+```docker-compose up -d```
+
+```docker-compose exec app python /app/predict.py```

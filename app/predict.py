@@ -27,16 +27,16 @@ drug_id_table = pd.read_csv(f"{db_directory}drug_id.csv")
 
 # TODO - get user input with docker
 # output table of disease options
-# print(tabulate(disease_id_table, headers=["ID","Disease"], tablefmt='psql', showindex="never"))
-# disease_id = int(input("\nENTER THE ID OF A DISEASE IN THE TABLE: "))
-# disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
+print(tabulate(disease_id_table, headers=["ID","Disease"], tablefmt='psql', showindex="never"))
+disease_id = int(input("\nENTER THE ID OF A DISEASE IN THE TABLE: "))
+disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
 
 # input(f"CHOSEN DISEASE (Enter/Return): {disease_string}")
 
 # temporarily read input from file
-f = open(f"{input_directory}disease.txt", "r")
-disease_id = int(f.read())
-disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
+# f = open(f"{input_directory}disease.txt", "r")
+# disease_id = int(f.read())
+# disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
 
 ###
 # GET PREDICTIONS
