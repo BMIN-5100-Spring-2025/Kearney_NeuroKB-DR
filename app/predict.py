@@ -3,10 +3,10 @@ from model import Model, device, data
 import pandas as pd
 from tabulate import tabulate
 
-project_path = os.getcwd()
-db_directory = os.getenv('DB_DIR', f"{project_path}/data/db/")
-input_directory = os.getenv('INPUT_DIR', f"{project_path}/data/input/")
-output_directory = os.getenv('OUTPUT_DIR', f"{project_path}/data/output/")
+# project_path = os.getcwd()
+db_directory = os.getenv('DB_DIR', f"data/db/")
+input_directory = os.getenv('INPUT_DIR', f"data/input/")
+output_directory = os.getenv('OUTPUT_DIR', f"data/output/")
 
 ###
 # LOAD MODEL
