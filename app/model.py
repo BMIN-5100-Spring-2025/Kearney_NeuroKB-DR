@@ -21,7 +21,7 @@ project_path = os.getcwd()
 
 device = torch_geometric.device('auto')
 
-data = torch.load(f'{project_path}/data/db/neuroKB.pth')
+data = torch.load(f'data/db/neuroKB.pth')
 data = T.ToUndirected()(data).to(device)
 
 ###
