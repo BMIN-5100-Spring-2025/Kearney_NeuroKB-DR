@@ -4,9 +4,14 @@ import pandas as pd
 from tabulate import tabulate
 
 # project_path = os.getcwd()
-db_directory = os.getenv('DB_DIR', f"data/db/")
-input_directory = os.getenv('INPUT_DIR', f"data/input/")
-output_directory = os.getenv('OUTPUT_DIR', f"data/output/")
+# db_directory = os.getenv('DB_DIR', f"data/db/")
+# input_directory = os.getenv('INPUT_DIR', f"data/input/")
+# output_directory = os.getenv('OUTPUT_DIR', f"data/output/")
+
+base_directory = os.path.dirname(os.path.dirname(__file__))
+db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
+input_directory = os.getenv('INPUT_DIR', os.path.join(base_directory, 'data/input/'))
+output_directory = os.getenv('OUTPUT_DIR', os.path.join(base_directory, 'data/output/'))
 
 ###
 # LOAD MODEL
@@ -74,4 +79,4 @@ with open(f"{output_directory}{today}_{disease_string.replace(" ","")}_candidate
     writer.writerow(["drug", "disease", "prediction_score"])
     writer.writerows(transposed_edges_sorted)
 
-# print(f"\nCANDIDATE DRUGS SAVED TO {output_directory}{today}_{stripped_disease_string}_candidateDrugs.csv")
+print(f"\nCANDIDATE DRUGS SAVED TO {output_directory}{today}_{stripped_disease_string}_candidateDrugs.csv")
