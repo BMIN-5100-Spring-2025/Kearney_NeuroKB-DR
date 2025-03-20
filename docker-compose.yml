@@ -1,5 +1,5 @@
 services:
-  app:
+  neurokb_dr:
     image: neurokb_dr
     build:
       context: .

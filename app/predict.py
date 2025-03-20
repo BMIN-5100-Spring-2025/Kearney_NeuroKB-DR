@@ -9,6 +9,7 @@ from tabulate import tabulate
 # output_directory = os.getenv('OUTPUT_DIR', f"data/output/")
 
 base_directory = os.path.dirname(os.path.dirname(__file__))
+print(base_directory)
 db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
 input_directory = os.getenv('INPUT_DIR', os.path.join(base_directory, 'data/input/'))
 output_directory = os.getenv('OUTPUT_DIR', os.path.join(base_directory, 'data/output/'))
@@ -41,6 +42,7 @@ drug_id_table = pd.read_csv(f"{db_directory}drug_id.csv")
 f = open(f"{input_directory}disease.txt", "r")
 disease_id = int(f.read())
 disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
+print(disease_string)
 
 ###
 # GET PREDICTIONS
