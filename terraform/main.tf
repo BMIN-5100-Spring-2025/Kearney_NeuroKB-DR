@@ -32,3 +32,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "Kearney_NeuroKB-DR_expiration"
     }
   }
 }
+
+resource "aws_ecr_repository" "Kearney_NeuroKB-DR" {
+  name                 = "kearneyneurokb-dr"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
