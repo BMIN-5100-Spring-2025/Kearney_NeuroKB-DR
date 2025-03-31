@@ -23,7 +23,9 @@ base_directory = os.path.dirname(os.path.dirname(__file__))
 db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
 
 device = torch_geometric.device('auto')
-data = torch.load(f'{db_directory}neuroKB.pth')
+# data = torch.load(f'{db_directory}neuroKB.pth')
+print(db_directory)
+data = torch.load(f'Files/data/db/neuroKB.pth')
 data = T.ToUndirected()(data).to(device)
 
 ###
