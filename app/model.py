@@ -35,7 +35,6 @@ if run_env == 'fargate':
     s3_client = session.client('s3')
 
     bucket_name = os.getenv('S3_BUCKET_NAME', 'kearneyneurokb-dr')
-    # bucket_name = 'kearneyneurokb-dr'
     input_files = ['disease_id.csv', 'drug_id.csv', 'neuroKB.pth', 'model12125.pt']
     db_directory = '/tmp/db/'
     os.makedirs(db_directory, exist_ok=True)
@@ -50,9 +49,6 @@ if run_env == 'fargate':
             logger.error(f"File {file_name} not found in bucket {bucket_name}.")
         else:
             raise
-
-    # for file_name in input_files:
-    #     s3_client.download_file(bucket_name, f'data/db/{file_name}', f'{db_directory}{file_name}')
 else:
     # run with local or docker environment
     logger.info("RUNNING IN OTHER ENVIRONMENT")

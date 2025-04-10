@@ -2,7 +2,6 @@ import boto3
 import torch, csv, os, datetime, re
 from model import Model, device, data
 import pandas as pd
-from tabulate import tabulate
 import logging
 import warnings
 
@@ -22,7 +21,6 @@ if run_env == 'fargate':
     os.makedirs(output_directory, exist_ok=True)
 else:
     logger.info(f"RUNNING IN {run_env} ENVIRONMENT")
-    print(f"RUNNING IN {run_env} ENVIRONMENT")
     base_directory = os.path.dirname(os.path.dirname(__file__))
     db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
     input_directory = os.getenv('INPUT_DIR', os.path.join(base_directory, 'data/input/'))
@@ -36,7 +34,6 @@ logger.info("LOADED S3 FILES")
 ###
 
 model = Model(hidden_channels=32).to(device)
-# model.load_state_dict(torch.load(f"{db_directory}model12125.pt", weights_only=True))
 model.load_state_dict(torch.load(f"{db_directory}model12125.pt", map_location=torch.device('cpu')))
 model.eval()
 logger.info("LOADED MODEL")
@@ -75,10 +72,7 @@ curr_disease_edges = torch.tensor([drug_indices, [disease_id] * len(drug_indices
 logger.info("MADE EDGES")
 logger.info(f"LEN EDGES: {len(curr_disease_edges)}")
 pred = model(data.x_dict, data.edge_index_dict, curr_disease_edges)
-# @profile
-# def get_predictions(model, data, curr_disease_edges):
-#     return model(data.x_dict, data.edge_index_dict, curr_disease_edges)
-# pred = get_predictions(model, data, curr_disease_edges)
+
 logger.info("GOT PREDICTIONS")
 drug_list = drug_id_table['name'].tolist()
 
