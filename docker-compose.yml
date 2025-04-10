@@ -1,15 +1,18 @@
 services:
   neurokb_dr:
     image: neurokb_dr
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
     stdin_open: true
     tty: true
     environment:
-      - DB_DIR=/data/db/
-      - OUTPUT_DIR=/data/output/
-      - INPUT_DIR=/data/input/
+      - DB_DIR=data/db/
+      - OUTPUT_DIR=data/output/
+      - INPUT_DIR=data/input/
+      - RUN_ENV=docker
+      - DISEASE=1
     volumes:
       - ./data/db:/data/db:ro
       - ./data/input:/data/input:ro
