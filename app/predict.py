@@ -1,17 +1,35 @@
+import boto3
 import torch, csv, os, datetime, re
 from model import Model, device, data
 import pandas as pd
 from tabulate import tabulate
+import logging
+import warnings
+# from memory_profiler import profile
+logger = logging.getLogger(__name__)
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# project_path = os.getcwd()
-# db_directory = os.getenv('DB_DIR', f"data/db/")
-# input_directory = os.getenv('INPUT_DIR', f"data/input/")
-# output_directory = os.getenv('OUTPUT_DIR', f"data/output/")
+run_env = os.getenv('RUN_ENV', 'local')
+if run_env == 'fargate':
+    logger.info("RUNNING PREDICT.PY IN FARGATE ENVIRONMENT")
+    session = boto3.Session()
+    s3_client = session.client('s3')
+    bucket_name = os.getenv('S3_BUCKET_NAME', 'kearneyneurokb-dr')
 
-base_directory = os.path.dirname(os.path.dirname(__file__))
-db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
-input_directory = os.getenv('INPUT_DIR', os.path.join(base_directory, 'data/input/'))
-output_directory = os.getenv('OUTPUT_DIR', os.path.join(base_directory, 'data/output/'))
+    db_directory = '/tmp/db/'
+    output_directory = '/tmp/output/'
+
+    os.makedirs(output_directory, exist_ok=True)
+else:
+    logger.info(f"RUNNING IN {run_env} ENVIRONMENT")
+    print(f"RUNNING IN {run_env} ENVIRONMENT")
+    base_directory = os.path.dirname(os.path.dirname(__file__))
+    db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
+    input_directory = os.getenv('INPUT_DIR', os.path.join(base_directory, 'data/input/'))
+    output_directory = os.getenv('OUTPUT_DIR', os.path.join(base_directory, 'data/output/'))
+
+disease_env = os.getenv('DISEASE', 'disease')
+logger.info("LOADED S3 FILES")
 
 ###
 # LOAD MODEL
@@ -21,6 +39,7 @@ model = Model(hidden_channels=32).to(device)
 # model.load_state_dict(torch.load(f"{db_directory}model12125.pt", weights_only=True))
 model.load_state_dict(torch.load(f"{db_directory}model12125.pt", map_location=torch.device('cpu')))
 model.eval()
+logger.info("LOADED MODEL")
 
 ###
 # GET USER INPUT
@@ -29,7 +48,7 @@ model.eval()
 # get maps of disease and drug to their node ids
 disease_id_table = pd.read_csv(f"{db_directory}disease_id.csv")
 drug_id_table = pd.read_csv(f"{db_directory}drug_id.csv")
-
+logger.info("READ CSV FILES")
 # TODO - get user input with docker
 # output table of disease options
 # print(tabulate(disease_id_table, headers=["ID","Disease"], tablefmt='psql', showindex="never"))
@@ -38,8 +57,9 @@ drug_id_table = pd.read_csv(f"{db_directory}drug_id.csv")
 # input(f"CHOSEN DISEASE (Enter/Return): {disease_string}")
 
 # temporarily read input from file
-f = open(f"{input_directory}disease.txt", "r")
-disease_id = int(f.read())
+# f = open(f"{input_directory}disease.txt", "r")
+
+disease_id = int(disease_env)
 disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_loc('name')]
 
 ###
@@ -47,12 +67,19 @@ disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_
 ###
 
 drug_indices = data['Drug'].node_id.tolist()
+drug_indices = drug_indices[:100]
 disease_indices = data['Disease'].node_id.tolist()
 
 # get the prediction score for the edge between the chosen disease and all possible drugs
 curr_disease_edges = torch.tensor([drug_indices, [disease_id] * len(drug_indices)], dtype=torch.int64)
+logger.info("MADE EDGES")
+logger.info(f"LEN EDGES: {len(curr_disease_edges)}")
 pred = model(data.x_dict, data.edge_index_dict, curr_disease_edges)
-
+# @profile
+# def get_predictions(model, data, curr_disease_edges):
+#     return model(data.x_dict, data.edge_index_dict, curr_disease_edges)
+# pred = get_predictions(model, data, curr_disease_edges)
+logger.info("GOT PREDICTIONS")
 drug_list = drug_id_table['name'].tolist()
 
 # compute drug, id, and prediction score for each edge
@@ -61,8 +88,8 @@ predicted_new_edges = [drug_list, [disease_string] * len(drug_indices), pred.tol
 transposed_edges = [list(row) for row in zip(*predicted_new_edges)]
 
 # store only the top 250 predicted edges for each disease
-transposed_edges_sorted = sorted(transposed_edges, key=lambda x: x[2], reverse=False)[:250]
-
+transposed_edges_sorted = sorted(transposed_edges, key=lambda x: x[2], reverse=False)[:20]
+logger.info("FORMATTED PREDICTIONS")
 ###
 # SAVE PREDICTIONS
 ###
@@ -73,10 +100,16 @@ today = datetime.date.today()
 # remove non digits or characters from the disease name
 stripped_disease_string = re.sub(r'[^a-zA-Z0-9]', '', disease_string)
 
+output_file = f"{output_directory}{today}_{disease_string.replace(' ', '')}_candidateDrugs.csv"
+
 # save top 250 predictions to a csv file
-with open(f"{output_directory}{today}_{disease_string.replace(" ","")}_candidateDrugs.csv", 'w', newline='') as f:
+with open(output_file, 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(["drug", "disease", "prediction_score"])
     writer.writerows(transposed_edges_sorted)
+logger.info("WROTE TO LOCAL FILE")
+print(f"\nCANDIDATE DRUGS SAVED TO {output_file}")
 
-print(f"\nCANDIDATE DRUGS SAVED TO {output_directory}{today}_{stripped_disease_string}_candidateDrugs.csv")
+if run_env == 'fargate':
+    s3_client.upload_file(output_file, bucket_name, f"data/output/{today}_{disease_string.replace(' ', '')}_candidateDrugs.csv")
+    logger.info("WROTE TO S3 FILE")

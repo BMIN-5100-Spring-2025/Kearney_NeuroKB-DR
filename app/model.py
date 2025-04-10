@@ -12,6 +12,14 @@ import torch
 import torch_geometric.transforms as T
 from torch.nn import Linear
 import torch_geometric
+import logging
+import warnings
+import boto3
+import botocore.exceptions
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 project_path = os.getcwd()
 
@@ -19,9 +27,40 @@ project_path = os.getcwd()
 # LOAD & SPLIT DATA
 ###
 
-device = torch_geometric.device('auto')
+run_env = os.getenv('RUN_ENV', 'local')
+if run_env == 'fargate':
+    logger.info("RUNNING MODEL.PY IN FARGATE ENVIRONMENT")
 
-data = torch.load(f'data/db/neuroKB.pth')
+    session = boto3.Session()
+    s3_client = session.client('s3')
+
+    bucket_name = os.getenv('S3_BUCKET_NAME', 'kearneyneurokb-dr')
+    # bucket_name = 'kearneyneurokb-dr'
+    input_files = ['disease_id.csv', 'drug_id.csv', 'neuroKB.pth', 'model12125.pt']
+    db_directory = '/tmp/db/'
+    os.makedirs(db_directory, exist_ok=True)
+
+    response = s3_client.list_objects_v2(Bucket=bucket_name)
+
+    try:
+        for file_name in input_files:
+            s3_client.download_file(bucket_name, f'data/db/{file_name}', f'{db_directory}{file_name}')
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            logger.error(f"File {file_name} not found in bucket {bucket_name}.")
+        else:
+            raise
+
+    # for file_name in input_files:
+    #     s3_client.download_file(bucket_name, f'data/db/{file_name}', f'{db_directory}{file_name}')
+else:
+    # run with local or docker environment
+    logger.info("RUNNING IN OTHER ENVIRONMENT")
+    base_directory = os.path.dirname(os.path.dirname(__file__))
+    db_directory = os.getenv('DB_DIR', os.path.join(base_directory, 'data/db/'))
+
+device = torch_geometric.device('auto')
+data = torch.load(f'{db_directory}neuroKB.pth')
 data = T.ToUndirected()(data).to(device)
 
 ###
