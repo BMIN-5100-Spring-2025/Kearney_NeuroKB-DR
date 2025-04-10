@@ -5,7 +5,7 @@ import pandas as pd
 from tabulate import tabulate
 import logging
 import warnings
-# from memory_profiler import profile
+
 logger = logging.getLogger(__name__)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -67,7 +67,7 @@ disease_string = disease_id_table.iloc[disease_id, disease_id_table.columns.get_
 ###
 
 drug_indices = data['Drug'].node_id.tolist()
-drug_indices = drug_indices[:100]
+drug_indices = drug_indices
 disease_indices = data['Disease'].node_id.tolist()
 
 # get the prediction score for the edge between the chosen disease and all possible drugs
@@ -87,8 +87,8 @@ predicted_new_edges = [drug_list, [disease_string] * len(drug_indices), pred.tol
 # convert predictions into a dataframe format
 transposed_edges = [list(row) for row in zip(*predicted_new_edges)]
 
-# store only the top 250 predicted edges for each disease
-transposed_edges_sorted = sorted(transposed_edges, key=lambda x: x[2], reverse=False)[:20]
+# store only the top 25 predicted edges for each disease
+transposed_edges_sorted = sorted(transposed_edges, key=lambda x: x[2], reverse=False)[:25]
 logger.info("FORMATTED PREDICTIONS")
 ###
 # SAVE PREDICTIONS
@@ -107,9 +107,10 @@ with open(output_file, 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(["drug", "disease", "prediction_score"])
     writer.writerows(transposed_edges_sorted)
-logger.info("WROTE TO LOCAL FILE")
-print(f"\nCANDIDATE DRUGS SAVED TO {output_file}")
 
 if run_env == 'fargate':
     s3_client.upload_file(output_file, bucket_name, f"data/output/{today}_{disease_string.replace(' ', '')}_candidateDrugs.csv")
     logger.info("WROTE TO S3 FILE")
+else:
+    logger.info("WROTE TO LOCAL FILE")
+    print(f"\nCANDIDATE DRUGS SAVED TO {output_file}")

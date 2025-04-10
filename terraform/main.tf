@@ -91,7 +91,8 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
       {
         Action = [
           "s3:GetObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:PutObject"
         ]
         Effect   = "Allow"
         Resource = [
@@ -113,7 +114,7 @@ resource "aws_ecs_task_definition" "kearney_neurokb_dr" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
-  memory                   = "3072"
+  memory                   = "4096"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
