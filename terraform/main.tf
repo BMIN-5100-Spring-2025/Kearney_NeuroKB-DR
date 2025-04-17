@@ -159,3 +159,15 @@ resource "aws_ecs_task_definition" "kearney_neurokb_dr" {
     size_in_gib = 200
   }
 }
+
+resource "aws_s3_bucket_cors_configuration" "kearneyneurokb-dr_cors_configuration" {
+  bucket = aws_s3_bucket.Kearney_NeuroKB-DR.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "POST", "PUT", "HEAD"]
+    allowed_origins = ["http://localhost:3000", "bmin5100.com", "*.bmin5100"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
