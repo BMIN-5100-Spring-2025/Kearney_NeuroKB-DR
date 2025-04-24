@@ -4,6 +4,8 @@ from model import Model, device, data
 import pandas as pd
 import logging
 import warnings
+import json
+import base64
 
 logger = logging.getLogger(__name__)
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -17,6 +19,13 @@ if run_env == 'fargate':
 
     db_directory = '/tmp/db/'
     output_directory = '/tmp/output/'
+
+    session_id = os.getenv('SESSION_ID')
+    prefix = f"{session_id}/" if session_id else ""
+    logger.info(f"session: {session_id}")
+    parameters = os.getenv('PARAMETERS')
+    parameters = json.loads(base64.b64decode(parameters).decode('utf-8')) if parameters else None
+    logger.info(f"parameters: {parameters}")
 
     os.makedirs(output_directory, exist_ok=True)
 else:
@@ -103,7 +112,7 @@ with open(output_file, 'w', newline='') as f:
     writer.writerows(transposed_edges_sorted)
 
 if run_env == 'fargate':
-    s3_client.upload_file(output_file, bucket_name, f"data/output/{today}_{disease_string.replace(' ', '')}_candidateDrugs.csv")
+    s3_client.upload_file(output_file, bucket_name, f"{prefix}output/{today}_{disease_string.replace(' ', '')}_candidateDrugs.csv")
     logger.info("WROTE TO S3 FILE")
 else:
     logger.info("WROTE TO LOCAL FILE")

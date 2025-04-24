@@ -12,7 +12,6 @@ services:
       - OUTPUT_DIR=data/output/
       - INPUT_DIR=data/input/
       - RUN_ENV=docker
-      - DISEASE=1
     volumes:
       - ./data/db:/data/db:ro
       - ./data/input:/data/input:ro
